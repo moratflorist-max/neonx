@@ -39,9 +39,10 @@ header{position:fixed;top:0;left:0;width:100%;z-index:999;background:rgba(5,5,15
 .nav-links a{color:var(--muted);font-size:14px;font-weight:600;padding:8px 14px;border-radius:6px;transition:.2s;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;}
 .nav-links a:hover,.nav-links a.active{color:#fff;background:rgba(168,85,247,.15);}
 .header-right{display:flex;align-items:center;gap:10px;}
-.balance-chip{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:20px;padding:6px 16px;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;transition:.2s;}
+.balance-chip{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:20px;padding:6px 20px;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;transition:.2s;white-space:nowrap;min-width:130px;text-align:center;}
 .balance-chip:hover{background:rgba(168,85,247,.25);}
 .balance-chip span{color:var(--muted);font-size:10px;display:block;line-height:1;}
+.balance-chip .balance-row{display:inline-flex;align-items:center;gap:4px;line-height:1.4;}
 .btn-hdr{padding:8px 18px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:.2s;text-transform:uppercase;}
 .btn-login{background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff;}
 .btn-login:hover{border-color:var(--neon);color:var(--neon);}
@@ -227,7 +228,10 @@ footer{background:rgba(0,0,0,.6);border-top:1px solid rgba(168,85,247,.2);paddin
 .neon-border{border:1px solid rgba(168,85,247,.4);box-shadow:0 0 20px rgba(168,85,247,.15),inset 0 0 20px rgba(168,85,247,.04);}
 
 /* SUPPORT BTN */
-
+.support-btn{position:fixed;bottom:24px;right:24px;z-index:999;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 30px rgba(168,85,247,.6);transition:.3s;animation:supportPulse 2s infinite;}
+@keyframes supportPulse{0%,100%{box-shadow:0 0 30px rgba(168,85,247,.6);}50%{box-shadow:0 0 50px rgba(168,85,247,.9),0 0 80px rgba(168,85,247,.3);}}
+.support-btn:hover{transform:scale(1.1);}
+.support-badge{position:absolute;top:0;right:0;width:18px;height:18px;background:var(--green);border-radius:50%;border:2px solid var(--bg);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 
 /* WIN NOTIF */
 .win-notif{position:fixed;bottom:90px;right:24px;z-index:998;max-width:290px;animation:slideIn .4s ease;}
@@ -564,7 +568,7 @@ footer{background:rgba(0,0,0,.6);border-top:1px solid rgba(168,85,247,.2);paddin
     <div class="header-right">
       <div class="balance-chip" onclick="showAddFunds()">
         <span>Баланс</span>
-        💎 <span id="headerBalance">1 000</span> ₽
+        <div class="balance-row">💎 <span id="headerBalance">1 000</span> ₽</div>
       </div>
       <div id="debtChip" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;color:var(--red);display:none;cursor:pointer;" onclick="showAddFunds()"></div>
       <div id="authButtons">
@@ -755,7 +759,7 @@ footer{background:rgba(0,0,0,.6);border-top:1px solid rgba(168,85,247,.2);paddin
       <div class="footer-disclaimer">🔐 Лицензировано Curaçao eGaming. Ответственная игра. 18+</div></div>
       <div class="footer-col"><h4>Игры</h4><a onclick="showPage('slots')">Все слоты</a><a onclick="showPage('live')">Live Casino</a><a onclick="showPage('crash')">Краш-игры</a><a onclick="showPage('table')">Настольные игры</a><a onclick="showPage('bonuses')">Джекпоты</a></div>
       <div class="footer-col"><h4>Компания</h4><a onclick="showInfoModal('about')">О нас</a><a onclick="showInfoModal('license')">Лицензия (Curaçao)</a><a onclick="showInfoModal('rules')">Правила</a><a onclick="showInfoModal('privacy')">Конфиденциальность</a><a onclick="showInfoModal('contacts')">Контакты</a></div>
-      <div class="footer-col"><h4>Поддержка</h4><a onclick="showInfoModal('responsible')">Ответственная игра</a><a onclick="showInfoModal('faq')">FAQ</a><a onclick="if(window.Tawk_API)window.Tawk_API.toggle()">Live-чат</a><a onclick="showInfoModal('partners')">Партнёрам</a></div>
+      <div class="footer-col"><h4>Поддержка</h4><a onclick="showInfoModal('responsible')">Ответственная игра</a><a onclick="showInfoModal('faq')">FAQ</a><a onclick="openSupportChat()">Live-чат</a><a onclick="showInfoModal('partners')">Партнёрам</a></div>
     </div>
     <div class="footer-bottom">
       <div>
@@ -904,6 +908,9 @@ footer{background:rgba(0,0,0,.6);border-top:1px solid rgba(168,85,247,.2);paddin
   </section>
 </div>
 
+<!-- SUPPORT -->
+<button class="support-btn" onclick="openSupportChat()" title="Поддержка 24/7">💬<span class="support-badge">1</span></button>
+
 <!-- WIN NOTIF -->
 <div class="win-notif" id="winNotif" style="display:none;">
   <div class="win-card">
@@ -992,6 +999,31 @@ footer{background:rgba(0,0,0,.6);border-top:1px solid rgba(168,85,247,.2);paddin
   </div>
 </div>
 
+<!-- SUPPORT CHAT BOT -->
+<div id="supportChatModal" style="display:none;position:fixed;bottom:90px;right:24px;z-index:2000;width:340px;max-width:calc(100vw - 32px);">
+  <div style="background:linear-gradient(135deg,#0d0020,#080820);border:1px solid rgba(168,85,247,.45);border-radius:20px;overflow:hidden;box-shadow:0 0 60px rgba(168,85,247,.3);display:flex;flex-direction:column;max-height:500px;">
+    <!-- Chat header -->
+    <div style="background:linear-gradient(90deg,rgba(124,58,237,.4),rgba(236,72,153,.3));padding:14px 18px;display:flex;align-items:center;gap:10px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🤖</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:15px;">NeonX Поддержка</div>
+        <div style="font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;background:var(--green);border-radius:50%;display:inline-block;animation:blink 1.5s infinite;"></span>Онлайн · Отвечаю мгновенно</div>
+      </div>
+      <button onclick="closeSupportChat()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <!-- Chat messages -->
+    <div id="chatMessages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:300px;scrollbar-width:thin;scrollbar-color:rgba(168,85,247,.4) transparent;">
+      <!-- Messages injected by JS -->
+    </div>
+    <!-- Quick replies -->
+    <div id="quickReplies" style="padding:8px 14px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.06);"></div>
+    <!-- Input -->
+    <div style="padding:12px 14px;display:flex;gap:8px;border-top:1px solid rgba(255,255,255,.06);">
+      <input id="chatInput" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(168,85,247,.3);border-radius:8px;padding:9px 12px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;" placeholder="Написать сообщение..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+      <button onclick="sendChatMsg()" style="background:linear-gradient(135deg,var(--purple),var(--pink));border:none;color:#fff;width:38px;height:38px;border-radius:8px;cursor:pointer;font-size:16px;">→</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ===================== BALANCE =====================
@@ -1141,6 +1173,37 @@ const tWins=[
   {i:'🌀',m:'<strong>Кэшбэк пятница!</strong> <span>Получи до</span> <strong>10%</strong> <span>возврата</span>'},
   {i:'🃏',m:'<strong>Ольга В.</strong> <span>Блэкджек!</span> <strong>18 900 ₽</strong>'},
   {i:'💣',m:'<strong>Dima_pro</strong> <span>прошёл 22 клетки в Mines —</span> <strong>125 000 ₽</strong>'},
+  {i:'🚀',m:'<strong>Кирилл Н.</strong> <span>x380 в Aviator —</span> <strong>190 000 ₽</strong>'},
+  {i:'🎰',m:'<strong>Tatyana_88</strong> <span>выиграла</span> <strong>77 500 ₽</strong> <span>на Book of Dead</span>'},
+  {i:'🌟',m:'<strong>Андрей Ф.</strong> <span>джекпот в Mega Moolah —</span> <strong>1 200 000 ₽</strong>'},
+  {i:'💰',m:'<strong>Наташа Ж.</strong> <span>сорвала</span> <strong>98 200 ₽</strong> <span>на Wolf Gold</span>'},
+  {i:'🎯',m:'<strong>Roman_bet</strong> <span>x15 в Crash —</span> <strong>54 000 ₽</strong>'},
+  {i:'🎪',m:'<strong>Виктор Л.</strong> <span>выиграл</span> <strong>23 750 ₽</strong> <span>в Crazy Time</span>'},
+  {i:'💫',m:'<strong>Аня М.</strong> <span>фриспины на Big Bass —</span> <strong>41 300 ₽</strong>'},
+  {i:'🔥',m:'<strong>Игорь С.</strong> <span>x89 в Aviator —</span> <strong>267 000 ₽</strong>'},
+  {i:'🎰',m:'<strong>Леna_lucky</strong> <span>выиграла</span> <strong>36 400 ₽</strong> <span>на Starburst</span>'},
+  {i:'♠️',m:'<strong>Павел Т.</strong> <span>21 в Блэкджеке —</span> <strong>85 000 ₽</strong>'},
+  {i:'🏅',m:'<strong>Светлана Р.</strong> <span>турнирный приз</span> <strong>150 000 ₽</strong>'},
+  {i:'🎲',m:'<strong>Kostyan_777</strong> <span>число 7 в Рулетке x35 —</span> <strong>175 000 ₽</strong>'},
+  {i:'💎',m:'<strong>Денис В.</strong> <span>x2 100 в Mines —</span> <strong>840 000 ₽</strong>'},
+  {i:'✈️',m:'<strong>Оксана К.</strong> <span>x55 в Aviator —</span> <strong>55 000 ₽</strong>'},
+  {i:'🌈',m:'<strong>Артём Ш.</strong> <span>выиграл</span> <strong>112 000 ₽</strong> <span>на Razor Shark</span>'},
+  {i:'🎁',m:'<strong>Юлия Н.</strong> <span>бонусный раунд —</span> <strong>29 800 ₽</strong> <span>на Gonzo's Quest</span>'},
+  {i:'🚀',m:'<strong>Max_winner</strong> <span>x500 в Aviator —</span> <strong>500 000 ₽</strong>'},
+  {i:'🎰',m:'<strong>Борис П.</strong> <span>выиграл</span> <strong>67 200 ₽</strong> <span>на Dog House Megaways</span>'},
+  {i:'⚡',m:'<strong>Алина С.</strong> <span>молния в Lightning Dice —</span> <strong>94 500 ₽</strong>'},
+  {i:'🏆',m:'<strong>Женя К.</strong> <span>1 место в турнире —</span> <strong>200 000 ₽</strong>'},
+  {i:'💣',m:'<strong>Stepan_x</strong> <span>прошёл 28 клеток в Mines —</span> <strong>310 000 ₽</strong>'},
+  {i:'🎯',m:'<strong>Вера Д.</strong> <span>х200 в Crash —</span> <strong>80 000 ₽</strong>'},
+  {i:'🌀',m:'<strong>Никита Е.</strong> <span>Crazy Time x50 —</span> <strong>130 000 ₽</strong>'},
+  {i:'🃏',m:'<strong>Полина М.</strong> <span>выиграла</span> <strong>44 600 ₽</strong> <span>в Baccarat</span>'},
+  {i:'🔥',m:'<strong>lucky_boy99</strong> <span>серия побед в Plinko —</span> <strong>72 000 ₽</strong>'},
+  {i:'💰',m:'<strong>Тимур Н.</strong> <span>прогрессивный джекпот —</span> <strong>2 500 000 ₽</strong>'},
+  {i:'🎰',m:'<strong>Ирина Л.</strong> <span>выиграла</span> <strong>58 900 ₽</strong> <span>на Fruit Party</span>'},
+  {i:'♠️',m:'<strong>Олег Б.</strong> <span>Блэкджек 5 раз подряд —</span> <strong>48 000 ₽</strong>'},
+  {i:'✈️',m:'<strong>pro_flyer</strong> <span>x1 000 в Aviator —</span> <strong>1 000 000 ₽</strong>'},
+  {i:'🌟',m:'<strong>Галина В.</strong> <span>выиграла</span> <strong>33 300 ₽</strong> <span>на Reactoonz</span>'},
+  {i:'🎲',m:'<strong>Владимир С.</strong> <span>Покер-рояль —</span> <strong>220 000 ₽</strong>'},
 ];
 const tEl=document.getElementById('tickerInner');
 const allT=[...tWins,...tWins];
@@ -3245,6 +3308,113 @@ function doThrow(){
   else setResult('diceRes',`😔 ${d1}+${d2}=${total} ≠ ${diceSel}. Проигрыш.`,'lose');
 }
 
+// ===================== SUPPORT CHAT BOT =====================
+// ===================== SUPPORT CHAT =====================
+
+const BOT_NAME = '🤖 Алекс (Поддержка)';
+let chatOpen = false;
+
+const BOT_RESPONSES = {
+  приветствие: ['Привет! 👋 Добро пожаловать в поддержку NeonX Casino. Чем могу помочь?', 'Здравствуйте! Я здесь чтобы помочь вам. Задайте любой вопрос!'],
+  вывод: ['Выводы обрабатываются от 15 минут до 24 часов в зависимости от способа. Минимальная сумма: 500 ₽. Верификация аккаунта ускоряет процесс.', 'Для вывода перейдите в раздел "Касса" → "Вывод". Поддерживаем: банк, СБП, крипту. Обычно до 1 часа!'],
+  пополнение: ['Пополнение моментальное! Доступны: Visa/MC, СБП, крипта, банковский перевод. Минималка 100 ₽, бонус +200% на первый!', 'Нажмите на баланс вверху или перейдите в "Касса" → "Пополнение". Деньги зачисляются мгновенно!'],
+  бонус: ['🎁 Активные бонусы:\n• 200% на первый депозит\n• 150 фриспинов\n• Кэшбэк каждую пятницу\nЧтобы активировать — напишите "BONUS" при пополнении!', 'Ваш бонус за регистрацию ещё действует! 200% + 150 FS на первый депозит. Вейджер x35 за 30 дней.'],
+  верификация: ['Для верификации нужны: паспорт/ID, селфи с документом. Обычно занимает 1-2 часа. После верификации лимиты на вывод увеличиваются!', 'Отправьте фото документа на verify@neonx.casino или через личный кабинет. Проверяем быстро!'],
+  блокировка: ['Если аккаунт заблокирован — напишите на support@neonx.casino с темой "Unblock". Разберёмся в течение 2 часов!', 'Блокировки бывают по соображениям безопасности. Передаю ваш вопрос специалисту. Ожидайте ответа в течение 1 часа.'],
+  игра: ['У нас 500+ игр от лучших провайдеров: Pragmatic Play, Evolution, NetEnt и других. Слоты, live-казино, краш-игры — всё для вас!', 'Все наши игры сертифицированы и честны. RTP от 94 до 99%. Попробуйте Aviator или Gates of Olympus — хиты сезона!'],
+  долг: ['Кредитный лимит 50 000 ₽. Ставка 5% в сутки. Для погашения долга нажмите на балансе "Пополнить". Гасите быстрее — экономьте!', 'Ваш кредит защищён системой NeonX. Для вопросов по долгу обратитесь в финансовый отдел: finance@neonx.casino'],
+  технический: ['Попробуйте обновить страницу или очистить кэш. Если не помогает — напишите ID игры и опишите проблему, быстро разберёмся!', 'Для технической проблемы создайте тикет в личном кабинете или напишите tech@neonx.casino. Отвечаем 24/7!'],
+  отзыв: ['Спасибо за обратную связь! Мы постоянно улучшаемся. Оставьте отзыв на Trustpilot — это помогает нам расти 🙏', 'Ваше мнение важно для нас! Отправьте отзыв через форму обратной связи в личном кабинете.'],
+  default: ['Понял вас! Уточните, пожалуйста, детали — постараюсь помочь максимально быстро 😊', 'Отличный вопрос! Сейчас разберусь. Если нужна более детальная помощь — передам вас живому оператору.', 'Спасибо, что обратились! Рассматриваю ваш запрос... ⏳']
+};
+
+const QUICK_BTNS = [
+  {text:'💰 Вывод средств', key:'вывод'},
+  {text:'💳 Пополнение', key:'пополнение'},
+  {text:'🎁 Бонусы', key:'бонус'},
+  {text:'🔐 Верификация', key:'верификация'},
+  {text:'🎮 Про игры', key:'игра'},
+  {text:'⚙️ Тех. проблема', key:'технический'},
+];
+
+let chatHistory = [];
+let botTyping = false;
+
+function openSupportChat(){
+  chatOpen = true;
+  document.getElementById('supportChatModal').style.display = 'block';
+  if(chatHistory.length === 0){
+    addBotMsg(BOT_RESPONSES.приветствие[0]);
+    renderQuickReplies();
+  }
+}
+function closeSupportChat(){
+  chatOpen = false;
+  document.getElementById('supportChatModal').style.display = 'none';
+}
+function addBotMsg(text){
+  chatHistory.push({role:'bot',text});
+  renderChat();
+}
+function addUserMsg(text){
+  chatHistory.push({role:'user',text});
+  renderChat();
+}
+function renderChat(){
+  const el = document.getElementById('chatMessages');
+  if(!el) return;
+  el.innerHTML = chatHistory.map(m => {
+    if(m.role === 'bot') return `<div style="display:flex;gap:8px;align-items:flex-end;">
+      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div>
+      <div style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:12px 12px 12px 2px;padding:10px 14px;font-size:13px;line-height:1.5;max-width:230px;white-space:pre-line;">${m.text}</div>
+    </div>`;
+    return `<div style="display:flex;justify-content:flex-end;">
+      <div style="background:linear-gradient(135deg,rgba(124,58,237,.4),rgba(236,72,153,.3));border:1px solid rgba(168,85,247,.3);border-radius:12px 12px 2px 12px;padding:10px 14px;font-size:13px;max-width:220px;">${m.text}</div>
+    </div>`;
+  }).join('') + (botTyping ? `<div style="display:flex;gap:8px;align-items:center;"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:14px;">🤖</div><div style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);border-radius:12px;padding:10px 14px;font-size:18px;letter-spacing:3px;">●●●</div></div>` : '');
+  el.scrollTop = el.scrollHeight;
+}
+function renderQuickReplies(){
+  const el = document.getElementById('quickReplies');
+  if(!el) return;
+  el.innerHTML = QUICK_BTNS.map(b => `<button onclick="sendQuick('${b.key}')" style="background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);color:var(--text);padding:5px 10px;border-radius:20px;font-size:12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;white-space:nowrap;transition:.2s;" onmouseover="this.style.background='rgba(168,85,247,.3)'" onmouseout="this.style.background='rgba(168,85,247,.12)'">${b.text}</button>`).join('');
+}
+function sendQuick(key){
+  const btn = QUICK_BTNS.find(b=>b.key===key);
+  if(btn) sendChatMsg(btn.text, key);
+}
+function sendChatMsg(textOverride, keyOverride){
+  const input = document.getElementById('chatInput');
+  const text = textOverride || (input ? input.value.trim() : '');
+  if(!text) return;
+  if(input && !textOverride) input.value = '';
+  addUserMsg(text);
+
+  const qr = document.getElementById('quickReplies');
+  if(qr) qr.innerHTML = '';
+  botTyping = true; renderChat();
+  const lower = text.toLowerCase();
+  let key = keyOverride || 'default';
+  if(!keyOverride){
+    if(/вывод|вывести|снять|снять деньги/.test(lower)) key='вывод';
+    else if(/пополн|депозит|положить/.test(lower)) key='пополнение';
+    else if(/бонус|фриспин|промокод/.test(lower)) key='бонус';
+    else if(/верифик|паспорт|документ/.test(lower)) key='верификация';
+    else if(/блокир|заблок|бан/.test(lower)) key='блокировка';
+    else if(/игр|слот|авиатор|краш/.test(lower)) key='игра';
+    else if(/долг|кредит|займ/.test(lower)) key='долг';
+    else if(/ошибк|проблем|не работ|баг/.test(lower)) key='технический';
+    else if(/отзыв|спасибо|благодарн/.test(lower)) key='отзыв';
+    else if(/привет|здравствуй|добрый/.test(lower)) key='приветствие';
+  }
+  const responses = BOT_RESPONSES[key] || BOT_RESPONSES.default;
+  const reply = responses[Math.floor(Math.random()*responses.length)];
+  setTimeout(()=>{
+    botTyping = false;
+    addBotMsg(reply);
+    setTimeout(renderQuickReplies, 500);
+  }, 800 + Math.random()*700);
+}
 
 // ===================== AUTH & PROFILE SYSTEM =====================
 const LEVELS = [
