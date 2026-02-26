@@ -320,9 +320,20 @@ footer{background:rgba(0,0,0,.6);border-top:1px solid rgba(168,85,247,.2);paddin
 .slot-win-anim{position:absolute;inset:0;pointer-events:none;z-index:20;display:none;}
 .slot-win-anim.active{display:block;animation:bigWinFlash .3s ease 3;}
 @keyframes bigWinFlash{0%,100%{background:transparent;}50%{background:rgba(245,158,11,.15);}}
+@keyframes overlayIn{0%{opacity:0;}100%{opacity:1;}}
+@keyframes bigWinPop{0%{transform:scale(0) rotate(-10deg);opacity:0;}60%{transform:scale(1.1) rotate(2deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
+@keyframes symbolSpin{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
+@keyframes lightningH{0%{transform:translateX(-200px);}100%{transform:translateX(calc(100vw + 200px));}}
+@keyframes lightningV{0%{transform:translateY(-200px);}100%{transform:translateY(calc(100vh + 200px));}}
+@keyframes scanLine{0%{top:0%;}100%{top:100%;}}
+@keyframes scanV{0%{transform:translateX(-100%);}100%{transform:translateX(200%)}}
+@keyframes scanH{0%{transform:translateX(-100%);}100%{transform:translateX(200%)}}
+@keyframes waveAnim{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.3);}}
+@keyframes fireFlicker{0%,100%{opacity:0.8;transform:scaleY(1);}50%{opacity:1;transform:scaleY(1.15);}}
+.slot-reels-container-inner{position:relative;}
 /* coin particles */
-.coin-particle{position:fixed;pointer-events:none;z-index:9999;font-size:20px;animation:coinFall 1.5s ease-in forwards;}
-@keyframes coinFall{0%{opacity:1;transform:translateY(0) rotate(0);}100%{opacity:0;transform:translateY(200px) rotate(720deg);}}
+.coin-particle{position:fixed;pointer-events:none;z-index:9999;animation:coinFall 1.5s ease-in forwards;}
+@keyframes coinFall{0%{opacity:1;transform:translateY(0) rotate(0) scale(1);}100%{opacity:0;transform:translateY(180px) rotate(720deg) scale(.5);}}
 
 /* ROULETTE PREMIUM */
 .roulette-wrap{display:flex;flex-direction:column;align-items:center;}
@@ -1126,7 +1137,11 @@ const GAMES = [
 ];
 
 const GAME_TYPE_FN = {
-  slots: buildSlots, crash: buildAviator, mines: buildMines, plinko: buildPlinko,
+  slots: buildSlots,
+  sweetbonanza: buildSlots, gatesofol: buildSlots, bigbass: buildSlots,
+  bookdead: buildSlots, sugarrush: buildSlots, starburst: buildSlots,
+  dragonking: buildSlots, wolfgold: buildSlots, spartacus: buildSlots, deadortall: buildSlots,
+  crash: buildAviator, mines: buildMines, plinko: buildPlinko,
   limbo: buildLimbo, tower: buildTower, coinflip: buildCoinFlip,
   roulette: buildRoulette, blackjack: buildBlackjack, baccarat: buildBaccarat,
   wof: buildWOF, videopoker: buildVideoPoker, keno: buildKeno,
@@ -1549,7 +1564,7 @@ function openGame(gameId, name, color){
   // find game
   const g=GAMES.find(x=>x.id===gameId)||{};
   const fn=GAME_TYPE_FN[gameId]||GAME_TYPE_FN[g.type]||buildSlots;
-  body.innerHTML=fn(name, color);
+  body.innerHTML=fn(name, color, gameId);
   document.getElementById('gameModal').classList.add('open');
   // init
   if(gameId==='blackjack') bjInit();
@@ -1584,56 +1599,301 @@ function getBet(id){return Math.max(1,Math.min(parseFloat(document.getElementByI
 function setResult(id,msg,type){const el=document.getElementById(id);if(el){el.textContent=msg;el.className='game-result '+(type||'');}}
 
 // ===================== SLOTS PREMIUM =====================
-const SYM=['🍭','⚡','💎','🎰','🍋','🔔','⭐','7️⃣','💀','🌸'];
-const SYM_COLORS={'🍭':'#ec4899','⚡':'#facc15','💎':'#38bdf8','🎰':'#a855f7','🍋':'#bef264','🔔':'#fbbf24','⭐':'#f59e0b','7️⃣':'#ef4444','💀':'#94a3b8','🌸':'#f0abfc'};
-const PAYS={'🍭':20,'⚡':15,'💎':30,'🎰':25,'🍋':5,'🔔':8,'⭐':10,'7️⃣':50,'💀':40,'🌸':12};
-let slotSpinning=false, autoOn=false, slotTotalWin=0, slotTotalSpins=0;
-// each reel has an array of symbols
-let reelData=[[],[],[]];
-let reelOffsets=[0,0,0];
-let reelTargetOffsets=[0,0,0];
-let reelAnimIds=[null,null,null];
-const REEL_H=88; // px per symbol
 
-function buildSlots(name,color){
-  // build random symbol strip for each reel
+// Per-game theme definitions
+const SLOT_THEMES = {
+  // Sweet Bonanza — конфетный, розово-фиолетовый
+  sweetbonanza: {
+    bg: 'linear-gradient(180deg,#2d0050 0%,#1a0035 50%,#0d0025 100%)',
+    accent: '#ec4899', accent2: '#a855f7',
+    border: 'rgba(236,72,153,0.6)',
+    glow: 'rgba(236,72,153,0.4)',
+    lineColor: '#ec4899',
+    titleGrad: 'linear-gradient(90deg,#f0abfc,#ec4899,#c026d3)',
+    jackpotColor: '#f0abfc',
+    reelBg: 'linear-gradient(180deg,rgba(40,0,70,0.95),rgba(20,0,50,0.98))',
+    winLineBg: 'rgba(236,72,153,0.15)',
+    sym: ['🍭','🍬','🍒','🍓','🍇','🍊','💎','🎀','🌸','🦋'],
+    symColors: {'🍭':'#f472b6','🍬':'#e879f9','🍒':'#f87171','🍓':'#fb7185','🍇':'#c084fc','🍊':'#fb923c','💎':'#a5f3fc','🎀':'#f9a8d4','🌸':'#fce7f3','🦋':'#e879f9'},
+    pays: {'🍭':25,'🍬':15,'🍒':8,'🍓':10,'🍇':12,'🍊':6,'💎':30,'🎀':20,'🌸':5,'🦋':18},
+    spinBtn: 'background:linear-gradient(135deg,#ec4899,#be185d);color:#fff;box-shadow:0 0 25px rgba(236,72,153,0.6);',
+    particles: ['🍭','🍬','✨','💫'],
+    subtitle: '🍬 Сладкий взрыв вкуса — тумблинг барабаны!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+      <div style="position:absolute;width:200px;height:200px;background:radial-gradient(circle,rgba(236,72,153,0.15),transparent);top:-50px;left:-50px;animation:floatY 4s ease-in-out infinite;"></div>
+      <div style="position:absolute;width:150px;height:150px;background:radial-gradient(circle,rgba(168,85,247,0.12),transparent);bottom:-30px;right:-30px;animation:floatY 5s ease-in-out infinite reverse;"></div>
+    </div>`,
+  },
+  // Gates of Olympus — греческий, синий-золотой
+  gatesofol: {
+    bg: 'linear-gradient(180deg,#001540 0%,#000d28 50%,#000818 100%)',
+    accent: '#f59e0b', accent2: '#3b82f6',
+    border: 'rgba(245,158,11,0.7)',
+    glow: 'rgba(245,158,11,0.5)',
+    lineColor: '#f59e0b',
+    titleGrad: 'linear-gradient(90deg,#fbbf24,#f59e0b,#d97706)',
+    jackpotColor: '#fbbf24',
+    reelBg: 'linear-gradient(180deg,rgba(0,15,50,0.95),rgba(0,8,30,0.98))',
+    winLineBg: 'rgba(245,158,11,0.15)',
+    sym: ['⚡','🏛️','👑','💎','🔱','🌩️','🌀','🏺','✨','🦅'],
+    symColors: {'⚡':'#fbbf24','🏛️':'#e2e8f0','👑':'#f59e0b','💎':'#60a5fa','🔱':'#c084fc','🌩️':'#facc15','🌀':'#818cf8','🏺':'#fb923c','✨':'#fde68a','🦅':'#f1f5f9'},
+    pays: {'⚡':50,'🏛️':12,'👑':30,'💎':25,'🔱':20,'🌩️':15,'🌀':10,'🏺':8,'✨':5,'🦅':18},
+    spinBtn: 'background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;box-shadow:0 0 30px rgba(245,158,11,0.7);',
+    particles: ['⚡','✨','💫','🌟'],
+    subtitle: '⚡ Боги Олимпа даруют множители x500!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+      <div style="position:absolute;width:300px;height:2px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.4),transparent);top:30%;left:-100px;animation:lightningH 3s linear infinite;"></div>
+      <div style="position:absolute;width:2px;height:200px;background:linear-gradient(180deg,transparent,rgba(245,158,11,0.3),transparent);top:0;right:30%;animation:lightningV 2.5s linear infinite;"></div>
+    </div>`,
+  },
+  // Big Bass Bonanza — рыбалка, синий-зелёный
+  bigbass: {
+    bg: 'linear-gradient(180deg,#001a30 0%,#001020 60%,#000810 100%)',
+    accent: '#06b6d4', accent2: '#10b981',
+    border: 'rgba(6,182,212,0.6)',
+    glow: 'rgba(6,182,212,0.4)',
+    lineColor: '#06b6d4',
+    titleGrad: 'linear-gradient(90deg,#67e8f9,#06b6d4,#0891b2)',
+    jackpotColor: '#67e8f9',
+    reelBg: 'linear-gradient(180deg,rgba(0,20,40,0.95),rgba(0,10,25,0.98))',
+    winLineBg: 'rgba(6,182,212,0.15)',
+    sym: ['🐟','🐠','🦈','🎣','💧','🌊','🦞','🐚','⚓','🎏'],
+    symColors: {'🐟':'#67e8f9','🐠':'#fb923c','🦈':'#94a3b8','🎣':'#fbbf24','💧':'#38bdf8','🌊':'#0ea5e9','🦞':'#ef4444','🐚':'#fde68a','⚓':'#64748b','🎏':'#4ade80'},
+    pays: {'🐟':8,'🐠':10,'🦈':40,'🎣':20,'💧':5,'🌊':6,'🦞':15,'🐚':12,'⚓':30,'🎏':25},
+    spinBtn: 'background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;box-shadow:0 0 25px rgba(6,182,212,0.6);',
+    particles: ['🐟','💧','✨','🌊'],
+    subtitle: '🎣 Рыбалка за джекпотом — закидывай удочку!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0.3;">
+      <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(0deg,rgba(6,182,212,0.3),transparent);animation:waveAnim 3s ease-in-out infinite;"></div>
+    </div>`,
+  },
+  // Book of Dead — египетский, тёмно-золотой
+  bookdead: {
+    bg: 'linear-gradient(180deg,#1a0a00 0%,#0d0500 60%,#050300 100%)',
+    accent: '#d97706', accent2: '#78350f',
+    border: 'rgba(217,119,6,0.7)',
+    glow: 'rgba(217,119,6,0.5)',
+    lineColor: '#d97706',
+    titleGrad: 'linear-gradient(90deg,#fde68a,#f59e0b,#d97706)',
+    jackpotColor: '#fde68a',
+    reelBg: 'linear-gradient(180deg,rgba(30,10,0,0.97),rgba(15,5,0,0.99))',
+    winLineBg: 'rgba(217,119,6,0.15)',
+    sym: ['📖','🏺','👁️','🦅','🪲','☥','🌙','🔮','💀','⚱️'],
+    symColors: {'📖':'#fde68a','🏺':'#fb923c','👁️':'#60a5fa','🦅':'#fbbf24','🪲':'#4ade80','☥':'#f59e0b','🌙':'#c4b5fd','🔮':'#a78bfa','💀':'#94a3b8','⚱️':'#d97706'},
+    pays: {'📖':50,'🏺':12,'👁️':20,'🦅':25,'🪲':8,'☥':30,'🌙':10,'🔮':15,'💀':35,'⚱️':6},
+    spinBtn: 'background:linear-gradient(135deg,#d97706,#92400e);color:#fff;box-shadow:0 0 25px rgba(217,119,6,0.6);',
+    particles: ['📖','✨','💫','⭐'],
+    subtitle: '📖 Тайны Египта откроют путь к богатству!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+      <div style="position:absolute;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(217,119,6,0.4),transparent);top:40%;animation:scanLine 4s linear infinite;"></div>
+    </div>`,
+  },
+  // Sugar Rush — конфеты пастельные, розово-мятный
+  sugarrush: {
+    bg: 'linear-gradient(180deg,#1f0038 0%,#120025 60%,#080018 100%)',
+    accent: '#f472b6', accent2: '#34d399',
+    border: 'rgba(244,114,182,0.6)',
+    glow: 'rgba(244,114,182,0.35)',
+    lineColor: '#f472b6',
+    titleGrad: 'linear-gradient(90deg,#fbcfe8,#f472b6,#34d399)',
+    jackpotColor: '#fbcfe8',
+    reelBg: 'linear-gradient(180deg,rgba(35,0,60,0.95),rgba(18,0,40,0.98))',
+    winLineBg: 'rgba(244,114,182,0.12)',
+    sym: ['🍰','🧁','🍩','🍡','🍮','🍫','🍦','🎂','🧇','🍪'],
+    symColors: {'🍰':'#fda4af','🧁':'#f9a8d4','🍩':'#fdba74','🍡':'#c084fc','🍮':'#fde68a','🍫':'#a16207','🍦':'#bfdbfe','🎂':'#fb7185','🧇':'#fbbf24','🍪':'#d97706'},
+    pays: {'🍰':20,'🧁':15,'🍩':10,'🍡':12,'🍮':8,'🍫':6,'🍦':18,'🎂':30,'🧇':5,'🍪':25},
+    spinBtn: 'background:linear-gradient(135deg,#f472b6,#db2777);color:#fff;box-shadow:0 0 25px rgba(244,114,182,0.6);',
+    particles: ['🍭','🍬','✨','🌸'],
+    subtitle: '🍰 Кластерный взрыв сладостей — вкус победы!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0.6;">
+      <div style="position:absolute;top:10%;left:5%;font-size:20px;animation:floatY 3s ease-in-out infinite;">🍭</div>
+      <div style="position:absolute;top:60%;right:8%;font-size:16px;animation:floatY 4s ease-in-out infinite reverse;">🍬</div>
+      <div style="position:absolute;top:35%;right:5%;font-size:14px;animation:floatY 3.5s ease-in-out infinite;">✨</div>
+    </div>`,
+  },
+  // Starburst — космический, неоновый
+  starburst: {
+    bg: 'linear-gradient(180deg,#0a001a 0%,#050012 60%,#020008 100%)',
+    accent: '#818cf8', accent2: '#c084fc',
+    border: 'rgba(129,140,248,0.7)',
+    glow: 'rgba(129,140,248,0.5)',
+    lineColor: '#818cf8',
+    titleGrad: 'linear-gradient(90deg,#c7d2fe,#818cf8,#6366f1)',
+    jackpotColor: '#c7d2fe',
+    reelBg: 'linear-gradient(180deg,rgba(10,0,30,0.97),rgba(5,0,18,0.99))',
+    winLineBg: 'rgba(129,140,248,0.15)',
+    sym: ['💎','⭐','🌟','💫','✨','🔷','🟣','🔵','🌈','🪐'],
+    symColors: {'💎':'#7dd3fc','⭐':'#fbbf24','🌟':'#fde68a','💫':'#c4b5fd','✨':'#a5f3fc','🔷':'#60a5fa','🟣':'#a855f7','🔵':'#3b82f6','🌈':'#f9a8d4','🪐':'#c084fc'},
+    pays: {'💎':30,'⭐':20,'🌟':15,'💫':12,'✨':8,'🔷':10,'🟣':18,'🔵':6,'🌈':25,'🪐':35},
+    spinBtn: 'background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;box-shadow:0 0 30px rgba(99,102,241,0.7);',
+    particles: ['⭐','✨','💫','🌟'],
+    subtitle: '💎 Взрывные вайлды разлетаются во все стороны!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+      <div style="position:absolute;width:2px;height:100%;background:linear-gradient(180deg,transparent,rgba(129,140,248,0.3),transparent);left:20%;animation:scanV 3s linear infinite;"></div>
+      <div style="position:absolute;width:100%;height:2px;background:linear-gradient(90deg,transparent,rgba(192,132,252,0.3),transparent);top:50%;animation:scanH 2.5s linear infinite;"></div>
+    </div>`,
+  },
+  // Dragon Kingdom — дракон, красно-оранжевый огненный
+  dragonking: {
+    bg: 'linear-gradient(180deg,#200005 0%,#120002 60%,#080001 100%)',
+    accent: '#f97316', accent2: '#dc2626',
+    border: 'rgba(249,115,22,0.7)',
+    glow: 'rgba(249,115,22,0.5)',
+    lineColor: '#f97316',
+    titleGrad: 'linear-gradient(90deg,#fed7aa,#f97316,#dc2626)',
+    jackpotColor: '#fed7aa',
+    reelBg: 'linear-gradient(180deg,rgba(32,0,5,0.97),rgba(16,0,2,0.99))',
+    winLineBg: 'rgba(249,115,22,0.15)',
+    sym: ['🐉','🔥','💎','👑','🏯','⚔️','🪬','🧧','🐲','🌋'],
+    symColors: {'🐉':'#fb923c','🔥':'#f97316','💎':'#60a5fa','👑':'#fbbf24','🏯':'#94a3b8','⚔️':'#e2e8f0','🪬':'#4ade80','🧧':'#ef4444','🐲':'#f87171','🌋':'#dc2626'},
+    pays: {'🐉':50,'🔥':20,'💎':25,'👑':30,'🏯':10,'⚔️':12,'🪬':8,'🧧':6,'🐲':35,'🌋':15},
+    spinBtn: 'background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;box-shadow:0 0 30px rgba(220,38,38,0.7);',
+    particles: ['🔥','✨','💫','⭐'],
+    subtitle: '🐉 Дракон дарует огненные выплаты!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+      <div style="position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(0deg,rgba(249,115,22,0.2),transparent);animation:fireFlicker 1s ease-in-out infinite alternate;"></div>
+      <div style="position:absolute;top:10%;right:5%;font-size:30px;opacity:0.2;animation:floatY 3s ease-in-out infinite;">🐉</div>
+    </div>`,
+  },
+  // Wolf Gold — природа, ночное небо, зелёный
+  wolfgold: {
+    bg: 'linear-gradient(180deg,#001505 0%,#000d03 60%,#000601 100%)',
+    accent: '#4ade80', accent2: '#15803d',
+    border: 'rgba(74,222,128,0.6)',
+    glow: 'rgba(74,222,128,0.4)',
+    lineColor: '#4ade80',
+    titleGrad: 'linear-gradient(90deg,#bbf7d0,#4ade80,#16a34a)',
+    jackpotColor: '#bbf7d0',
+    reelBg: 'linear-gradient(180deg,rgba(0,20,5,0.97),rgba(0,10,3,0.99))',
+    winLineBg: 'rgba(74,222,128,0.12)',
+    sym: ['🐺','🌕','🦌','🦁','🦊','🌲','⭐','💎','🍀','🌙'],
+    symColors: {'🐺':'#e2e8f0','🌕':'#fde68a','🦌':'#d97706','🦁':'#f59e0b','🦊':'#f97316','🌲':'#4ade80','⭐':'#fbbf24','💎':'#67e8f9','🍀':'#86efac','🌙':'#c4b5fd'},
+    pays: {'🐺':40,'🌕':25,'🦌':15,'🦁':20,'🦊':12,'🌲':6,'⭐':8,'💎':30,'🍀':10,'🌙':18},
+    spinBtn: 'background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;box-shadow:0 0 25px rgba(22,163,74,0.6);',
+    particles: ['⭐','✨','🌟','💫'],
+    subtitle: '🐺 Волки воют на луну — мегаджекпот ждёт!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0.4;">
+      <div style="position:absolute;top:5%;right:10%;font-size:40px;animation:floatY 5s ease-in-out infinite;">🌕</div>
+      <div style="position:absolute;top:15%;left:8%;font-size:12px;animation:floatY 4s ease-in-out infinite reverse;">⭐</div>
+    </div>`,
+  },
+  // Spartacus — гладиатор, тёмно-красный мрамор
+  spartacus: {
+    bg: 'linear-gradient(180deg,#1a0003 0%,#0d0002 60%,#060001 100%)',
+    accent: '#dc2626', accent2: '#991b1b',
+    border: 'rgba(220,38,38,0.7)',
+    glow: 'rgba(220,38,38,0.5)',
+    lineColor: '#dc2626',
+    titleGrad: 'linear-gradient(90deg,#fecaca,#ef4444,#dc2626)',
+    jackpotColor: '#fecaca',
+    reelBg: 'linear-gradient(180deg,rgba(26,0,3,0.97),rgba(13,0,2,0.99))',
+    winLineBg: 'rgba(220,38,38,0.15)',
+    sym: ['⚔️','🛡️','🏛️','👑','🦅','🪖','💎','🔱','🐴','🌹'],
+    symColors: {'⚔️':'#e2e8f0','🛡️':'#94a3b8','🏛️':'#fde68a','👑':'#f59e0b','🦅':'#e2e8f0','🪖':'#d97706','💎':'#7dd3fc','🔱':'#c084fc','🐴':'#d4a27a','🌹':'#ef4444'},
+    pays: {'⚔️':30,'🛡️':12,'🏛️':10,'👑':25,'🦅':20,'🪖':8,'💎':35,'🔱':15,'🐴':6,'🌹':18},
+    spinBtn: 'background:linear-gradient(135deg,#b91c1c,#991b1b);color:#fff;box-shadow:0 0 25px rgba(185,28,28,0.6);',
+    particles: ['⚔️','✨','💫','⭐'],
+    subtitle: '⚔️ Сражайся как гладиатор за каждый денарий!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0.15;">
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(45deg,rgba(220,38,38,0.1) 0px,transparent 2px,transparent 20px);"></div>
+    </div>`,
+  },
+  // Dead or Alive 2 — дикий запад, сепия/коричневый
+  deadortall: {
+    bg: 'linear-gradient(180deg,#120800 0%,#0a0500 60%,#050200 100%)',
+    accent: '#b45309', accent2: '#78350f',
+    border: 'rgba(180,83,9,0.7)',
+    glow: 'rgba(180,83,9,0.5)',
+    lineColor: '#b45309',
+    titleGrad: 'linear-gradient(90deg,#fef3c7,#f59e0b,#b45309)',
+    jackpotColor: '#fef3c7',
+    reelBg: 'linear-gradient(180deg,rgba(18,8,0,0.97),rgba(10,5,0,0.99))',
+    winLineBg: 'rgba(180,83,9,0.15)',
+    sym: ['🤠','🔫','💀','🎰','💵','🌵','🐴','⭐','🎯','🥃'],
+    symColors: {'🤠':'#fde68a','🔫':'#94a3b8','💀':'#e2e8f0','🎰':'#f59e0b','💵':'#4ade80','🌵':'#86efac','🐴':'#d4a27a','⭐':'#fbbf24','🎯':'#ef4444','🥃':'#d97706'},
+    pays: {'🤠':50,'🔫':20,'💀':35,'🎰':25,'💵':15,'🌵':8,'🐴':10,'⭐':6,'🎯':30,'🥃':12},
+    spinBtn: 'background:linear-gradient(135deg,#b45309,#92400e);color:#fff;box-shadow:0 0 25px rgba(180,83,9,0.6);',
+    particles: ['💵','⭐','✨','💫'],
+    subtitle: '🤠 Дикий запад — мёртв или жив, но всегда богат!',
+    animBg: `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0.2;">
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjAwLDAsLjIpIi8+PC9zdmc+');"></div>
+    </div>`,
+  },
+};
+
+// Default theme for unknown slots
+const DEFAULT_SLOT_THEME = SLOT_THEMES.starburst;
+
+let slotSpinning=false, autoOn=false, slotTotalWin=0, slotTotalSpins=0;
+let reelData=[[],[],[]];
+let reelAnimIds=[null,null,null];
+const REEL_H=88;
+let currentSlotTheme = DEFAULT_SLOT_THEME;
+let currentSlotGameId = '';
+
+function buildSlots(name, color, gameId){
+  // Determine theme from gameId or name
+  currentSlotGameId = gameId || '';
+  // Try to find theme by current game being opened
+  const g = GAMES.find(x=>x.name===name||x.id===gameId);
+  const themeKey = g ? g.id : null;
+  currentSlotTheme = SLOT_THEMES[themeKey] || DEFAULT_SLOT_THEME;
+  const th = currentSlotTheme;
+
+  // Build reel data with themed symbols
+  slotTotalWin=0; slotTotalSpins=0;
   for(let r=0;r<3;r++){
     reelData[r]=[];
-    for(let i=0;i<30;i++)reelData[r].push(SYM[Math.floor(Math.random()*SYM.length)]);
+    for(let i=0;i<30;i++) reelData[r].push(th.sym[Math.floor(Math.random()*th.sym.length)]);
   }
+
   return `<div style="text-align:center;">
-    <div class="jackpot-ticker" id="slotJackpot">🏆 ДЖЕКПОТ: <span id="jackpotVal">1 247 830</span> ₽</div>
-    <div class="slot-machine-wrap">
-      <div class="slot-top-bar">
-        <div><div class="slot-label">Выигрыш</div><div class="slot-val" id="slotWinTotal">0 ₽</div></div>
-        <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:3px;background:linear-gradient(90deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${name}</div>
-        <div><div class="slot-label">Спинов</div><div class="slot-val" id="slotSpins">0</div></div>
+    <p class="game-subtitle" style="color:${th.accent};margin-bottom:10px;">${th.subtitle}</p>
+    <div class="jackpot-ticker" id="slotJackpot" style="color:${th.jackpotColor};border-color:${th.border};background:rgba(0,0,0,0.4);">
+      🏆 ДЖЕКПОТ: <span id="jackpotVal">1 247 830</span> ₽
+    </div>
+    <div class="slot-machine-wrap" style="background:${th.bg};border-color:${th.border};box-shadow:0 0 60px ${th.glow},inset 0 0 40px rgba(0,0,0,.6);">
+      ${th.animBg || ''}
+      <div class="slot-top-bar" style="position:relative;z-index:5;">
+        <div><div class="slot-label">Выигрыш</div><div class="slot-val" id="slotWinTotal" style="color:${th.accent};">0 ₽</div></div>
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;background:${th.titleGrad};-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${name}</div>
+        <div><div class="slot-label">Спинов</div><div class="slot-val" id="slotSpins" style="color:${th.accent};">0</div></div>
       </div>
-      <div class="slot-reels-container" id="reelsContainer">
+      <div class="slot-reels-container" id="reelsContainer" style="border-color:${th.border};position:relative;z-index:5;">
         <div class="slot-reels-glow"></div>
-        <div class="slot-reels">
-          ${[0,1,2].map(i=>`
-          <div class="reel-window" id="reelWin${i}">
-            <div class="reel" id="reel${i}" style="transform:translateY(0);">
-              ${Array.from({length:30},(_,j)=>`<div class="reel-symbol" id="rs${i}_${j}">${reelData[i][j]}</div>`).join('')}
-            </div>
-          </div>`).join('')}
+        <div class="slot-reels-container-inner" style="background:${th.reelBg};border-radius:12px;padding:10px;position:relative;">
+          <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:92px;pointer-events:none;border-top:2px solid ${th.accent};border-bottom:2px solid ${th.accent};box-shadow:0 0 20px ${th.glow};z-index:10;"></div>
+          <div class="slot-reels" style="position:relative;z-index:2;">
+            ${[0,1,2].map(i=>`
+            <div class="reel-window" id="reelWin${i}" style="background:rgba(0,0,0,0.5);border:1px solid ${th.border};">
+              <div class="reel" id="reel${i}">
+                ${Array.from({length:30},(_,j)=>`<div class="reel-symbol" id="rs${i}_${j}" style="color:${th.symColors[reelData[i][j]]||'#fff'}">${reelData[i][j]}</div>`).join('')}
+              </div>
+            </div>`).join('')}
+          </div>
         </div>
         <div class="slot-win-anim" id="slotWinAnim"></div>
       </div>
-      ${betRow('slotBet',50)}
-      <div class="game-result info" id="slotResult">Нажми КРУТИТЬ!</div>
-      <div class="btns-row">
-        <button class="action-btn btn-gold" id="spinBtn" onclick="doSpin()" style="font-size:17px;padding:13px 36px;">🎰 КРУТИТЬ</button>
-        <button class="action-btn btn-purple" id="autoBtn" onclick="toggleAuto()">⚡ АВТО</button>
+      <div style="position:relative;z-index:5;">
+        ${betRow('slotBet',50)}
+        <div class="game-result info" id="slotResult">Нажми КРУТИТЬ!</div>
+        <div class="btns-row">
+          <button class="action-btn" id="spinBtn" onclick="doSpin()" style="font-size:17px;padding:13px 36px;${th.spinBtn}border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-weight:700;text-transform:uppercase;cursor:pointer;transition:.2s;letter-spacing:.5px;">🎰 КРУТИТЬ</button>
+          <button class="action-btn btn-purple" id="autoBtn" onclick="toggleAuto()">⚡ АВТО</button>
+        </div>
       </div>
     </div>
-    <div class="paytable" style="margin-top:12px;"><h4>💰 Таблица выплат</h4>
+    <div class="paytable" style="margin-top:12px;border-color:${th.border};">
+      <h4 style="color:${th.accent};">💰 Таблица выплат — ${name}</h4>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
-        ${SYM.map(s=>`<div class="pay-row"><span style="color:${SYM_COLORS[s]}">${s}${s}${s}</span><span style="color:var(--gold);font-weight:700;">x${PAYS[s]}</span></div>`).join('')}
+        ${th.sym.map(s=>`<div class="pay-row"><span style="color:${th.symColors[s]||'#fff'};font-size:16px;">${s}${s}${s}</span><span style="color:${th.accent};font-weight:700;">x${th.pays[s]}</span></div>`).join('')}
       </div>
-      <div class="pay-row" style="margin-top:4px;"><span>🎯 Любые 2 одинаковых</span><span style="color:var(--cyan);font-weight:700;">x2</span></div>
+      <div class="pay-row" style="margin-top:4px;border-top:1px solid ${th.border};padding-top:4px;"><span>🎯 Любые 2 одинаковых</span><span style="color:${th.accent2};font-weight:700;">x2</span></div>
     </div>
+    <style>
+      #spinBtn:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.15);}
+      #spinBtn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    </style>
   </div>`;
 }
 
@@ -1655,6 +1915,7 @@ function spinReelAnim(reelIdx, duration, finalSymbols, callback){
   if(!reelEl)return;
   const symCount=reelData[reelIdx].length;
   let startTime=null;
+  const th=currentSlotTheme;
   // set target symbols
   reelData[reelIdx][symCount-2]=finalSymbols[0];
   reelData[reelIdx][symCount-1]=finalSymbols[1];
@@ -1662,10 +1923,8 @@ function spinReelAnim(reelIdx, duration, finalSymbols, callback){
   // update DOM
   for(let j=0;j<symCount;j++){
     const s=document.getElementById(`rs${reelIdx}_${j}`);
-    if(s)s.textContent=reelData[reelIdx][j];
+    if(s){s.textContent=reelData[reelIdx][j];s.style.color=th.symColors[reelData[reelIdx][j]]||'#fff';}
   }
-  // spin animation - fast scroll then slow to stop
-  let currentOffset=0;
   const totalDistance=symCount*REEL_H*3;
   const stopAt=(symCount-2)*REEL_H;
   
@@ -1673,34 +1932,35 @@ function spinReelAnim(reelIdx, duration, finalSymbols, callback){
     if(!startTime)startTime=ts;
     const elapsed=ts-startTime;
     const progress=Math.min(elapsed/duration,1);
-    // ease: fast then slow
     const eased=progress<.7?progress/.7:1-Math.pow((progress-.7)/.3,2)*.8;
     const offset=(eased*totalDistance)%(symCount*REEL_H);
     reelEl.style.transform=`translateY(-${offset}px)`;
     if(progress<1){
       reelAnimIds[reelIdx]=requestAnimationFrame(animate);
     } else {
-      // snap to middle row showing final symbol
       reelEl.style.transform=`translateY(-${stopAt}px)`;
-      // highlight winning symbol
       const midSym=document.getElementById(`rs${reelIdx}_${symCount-2}`);
-      if(midSym)midSym.classList.add('winning');
+      if(midSym){
+        midSym.classList.add('winning');
+        midSym.style.textShadow=`0 0 20px ${th.accent},0 0 40px ${th.glow}`;
+      }
       if(callback)callback();
     }
   }
   reelAnimIds[reelIdx]=requestAnimationFrame(animate);
 }
 
-function spawnCoins(count, originEl){
+function spawnCoins(count, originEl, customParticles){
   const rect=originEl?originEl.getBoundingClientRect():{left:window.innerWidth/2,top:window.innerHeight/2};
-  const coins=['🪙','💰','💎','⭐'];
+  const coins=customParticles||['🪙','💰','💎','⭐'];
   for(let i=0;i<count;i++){
     const p=document.createElement('div');
     p.className='coin-particle';
     p.textContent=coins[Math.floor(Math.random()*coins.length)];
     p.style.left=(rect.left+Math.random()*rect.width)+'px';
-    p.style.top=rect.top+'px';
+    p.style.top=(rect.top+10+Math.random()*20)+'px';
     p.style.animationDelay=(Math.random()*.5)+'s';
+    p.style.fontSize=(14+Math.random()*14)+'px';
     document.body.appendChild(p);
     setTimeout(()=>p.remove(),2000);
   }
@@ -1714,8 +1974,9 @@ function doSpin(){
   const spinBtn=document.getElementById('spinBtn');
   if(spinBtn)spinBtn.disabled=true;
   document.getElementById('slotSpins').textContent=slotTotalSpins;
-  // remove previous winning highlights
-  document.querySelectorAll('.reel-symbol.winning').forEach(el=>el.classList.remove('winning'));
+  document.querySelectorAll('.reel-symbol.winning').forEach(el=>{el.classList.remove('winning');el.style.textShadow='';});
+  const th=currentSlotTheme;
+  const SYM=th.sym;
   const results=[SYM[Math.floor(Math.random()*SYM.length)],SYM[Math.floor(Math.random()*SYM.length)],SYM[Math.floor(Math.random()*SYM.length)]];
   let done=0;
   [0,1,2].forEach(i=>{
@@ -1734,22 +1995,49 @@ function finishSpin(results,bet){
   slotSpinning=false;
   const spinBtn=document.getElementById('spinBtn');
   if(spinBtn)spinBtn.disabled=false;
+  const th=currentSlotTheme;
   const[a,b,c]=results; let win=0;
   if(a===b&&b===c){
-    win=Math.round(bet*PAYS[a]);chgBal(win);
+    win=Math.round(bet*(th.pays[a]||20));chgBal(win);
     setResult('slotResult',`🎉 ДЖЕКПОТ! ${a}${b}${c} — +${fmt(win)} ₽`,'win');
     const wa=document.getElementById('slotWinAnim');if(wa)wa.classList.add('active');
     setTimeout(()=>{if(wa)wa.classList.remove('active');},1000);
-    spawnCoins(20, document.getElementById('reelsContainer'));
+    spawnCoins(25, document.getElementById('reelsContainer'), th.particles);
+    // Big win overlay
+    showBigWinOverlay(win, a, th);
   } else if(a===b||b===c||a===c){
     win=bet*2;chgBal(win);
     setResult('slotResult',`✨ Пара! +${fmt(win)} ₽`,'win');
-    spawnCoins(8, document.getElementById('reelsContainer'));
-  } else setResult('slotResult','😔 Нет выигрыша. Ещё раз!','lose');
-  slotTotalWin+=win; document.getElementById('slotWinTotal').textContent=fmt(slotTotalWin)+' ₽';
+    spawnCoins(8, document.getElementById('reelsContainer'), th.particles);
+  } else {
+    // Small chance of free spins trigger
+    if(Math.random()<0.08){
+      setResult('slotResult',`🌀 ФРИСПИН! Бесплатное вращение!`,'win');
+      setTimeout(()=>{if(!slotSpinning&&balance>0)doSpin();},600);
+      return;
+    }
+    setResult('slotResult','😔 Нет выигрыша. Ещё раз!','lose');
+  }
+  slotTotalWin+=win;
+  const wtEl=document.getElementById('slotWinTotal');
+  if(wtEl)wtEl.textContent=fmt(slotTotalWin)+' ₽';
   if(autoOn&&balance>0)setTimeout(doSpin,900);
   else if(autoOn){autoOn=false;const ab=document.getElementById('autoBtn');if(ab){ab.textContent='⚡ АВТО';ab.style.background='';}}
 }
+
+function showBigWinOverlay(win, sym, th){
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`position:fixed;inset:0;z-index:9999;pointer-events:none;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);animation:overlayIn .3s ease;`;
+  overlay.innerHTML=`
+    <div style="text-align:center;animation:bigWinPop .4s cubic-bezier(.17,.67,.12,1.4);">
+      <div style="font-size:80px;animation:symbolSpin 0.5s ease 3;display:inline-block;">${sym}</div>
+      <div style="font-family:'Bebas Neue';font-size:60px;background:${th.titleGrad};-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;line-height:1;">ДЖЕКПОТ!</div>
+      <div style="font-family:'Orbitron';font-size:32px;color:${th.accent};font-weight:900;text-shadow:0 0 30px ${th.glow};">+${fmt(win)} ₽</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(()=>overlay.remove(),2500);
+}
+
 
 function toggleAuto(){
   autoOn=!autoOn;
@@ -2989,6 +3277,8 @@ function doThrow(){
 }
 
 // ===================== SUPPORT CHAT BOT =====================
+// ===================== SUPPORT CHAT =====================
+
 const BOT_NAME = '🤖 Алекс (Поддержка)';
 let chatOpen = false;
 
@@ -3067,10 +3357,9 @@ function sendChatMsg(textOverride, keyOverride){
   if(!text) return;
   if(input && !textOverride) input.value = '';
   addUserMsg(text);
-  // Hide quick replies after first message
+
   const qr = document.getElementById('quickReplies');
   if(qr) qr.innerHTML = '';
-  // Find best response
   botTyping = true; renderChat();
   const lower = text.toLowerCase();
   let key = keyOverride || 'default';
@@ -3091,7 +3380,6 @@ function sendChatMsg(textOverride, keyOverride){
   setTimeout(()=>{
     botTyping = false;
     addBotMsg(reply);
-    // Show quick replies again after bot responds
     setTimeout(renderQuickReplies, 500);
   }, 800 + Math.random()*700);
 }
@@ -3684,6 +3972,18 @@ setTimeout(()=>{
   buildGrid('crashGrid','crash');
   buildGrid('tableGrid','table');
 },500);
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69a090114afa321c34c790b5/1jidj5hvu';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
 </script>
+<!--End of Tawk.to Script-->
 </body>
 </html>
